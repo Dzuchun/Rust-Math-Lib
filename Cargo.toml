@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "gen_math_lib",
+    "function_macros",
+]

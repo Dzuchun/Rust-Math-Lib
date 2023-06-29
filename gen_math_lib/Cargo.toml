@@ -1,10 +1,10 @@
 [package]
-name = "gen-math-lib"
+name = "gen_math_lib"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-function-macros = { path="../function-macros" }
+function_macros = { path="../function_macros" }
 rand = "0.8.4"
