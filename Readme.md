@@ -1,3 +1,7 @@
+# IMMEDIATE
+
+- Replace regular tests with documentation tests!!!!
+
 # General Math Lib
 
 ## Overview
