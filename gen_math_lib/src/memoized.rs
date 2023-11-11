@@ -55,6 +55,7 @@ impl PartialEq for HashableF64 {
 
 impl Eq for HashableF64 {}
 impl Metrized for HashableF64 {
+    type Output = f64;
     fn distance(&self, other: &Self) -> f64 {
         (self.0 - other.0).abs()
     }

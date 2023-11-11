@@ -1,4 +1,5 @@
 use gen_math_lib::macro_functions::*;
+use gen_math_lib::progression::arithmetic_bounded;
 use gen_math_lib::traits::Metrized;
 
 #[test]
@@ -86,11 +87,10 @@ fn ln_3() {
 
 #[test]
 fn sin_1() -> Result<(), String> {
-    use gen_math_lib::progression::arith;
     use std::f64::consts::TAU;
 
     // arrange
-    let a = arith(-TAU, TAU, 0.1)?.collect::<Vec<f64>>();
+    let a = arithmetic_bounded(-TAU, TAU, 0.1).collect::<Vec<f64>>();
 
     // act
     let res = a.iter().map(|x| SIN(*x)).collect::<Vec<f64>>();
@@ -112,11 +112,10 @@ fn sin_1() -> Result<(), String> {
 
 #[test]
 fn cos_1() -> Result<(), String> {
-    use gen_math_lib::progression::arith;
     use std::f64::consts::TAU;
 
     // arrange
-    let a = arith(-TAU, TAU, 0.1)?.collect::<Vec<f64>>();
+    let a = arithmetic_bounded(-TAU, TAU, 0.1).collect::<Vec<f64>>();
 
     // act
     let res = a.iter().map(|x| COS(*x)).collect::<Vec<f64>>();
@@ -143,7 +142,7 @@ fn sinc_1() {
     // arrange
 
     // act
-    let res = integration::euler(0.0, 1000.0, SINC, 1E-7, 1E-4);
+    let res = integration::euler(0.0, 1000.0, 1E-7, 1E-4, SINC);
 
     // assert
     let deviation = res.distance(&std::f64::consts::FRAC_PI_2) / std::f64::consts::FRAC_PI_2;

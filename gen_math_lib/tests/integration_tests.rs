@@ -8,7 +8,7 @@ fn euler_1() {
     let func = f64::sin;
 
     // act
-    let res: f64 = euler(begin, end, func, 1E-5, 1E-4);
+    let res: f64 = euler(begin, end, 1E-5, 1E-4, func);
 
     // assert
     assert!((res - 2.0).abs() < 1E-8, "{res}");
@@ -22,7 +22,7 @@ fn euler_2() {
     let func = f64::sin;
 
     // act
-    let res: f64 = euler(begin, end, func, 1E-9, 1e-5);
+    let res: f64 = euler(begin, end, 1E-9, 1e-5, func);
 
     // assert
     assert!((res - -1.0).abs() < 1E-7, "{res}");
