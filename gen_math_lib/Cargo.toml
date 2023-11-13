@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 function_macros = { path="../function_macros" }
+nalgebra = "0.32.3"
 num = "0.4.1"
 num-traits = "0.2.17"
 rand = "0.8.4"

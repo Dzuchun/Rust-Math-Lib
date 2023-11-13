@@ -1,31 +1,73 @@
 extern crate proc_macro;
 use proc_macro::TokenStream;
+use proc_macro2::{Ident, Span, TokenStream as TokenStream2};
+use quote::quote;
+use syn::{parse::Parse, parse_macro_input, LitInt, Token};
 
-#[proc_macro]
-pub fn ffat(item: TokenStream) -> TokenStream {
-    let input = item.to_string();
-    let comma_index = input.find(',').unwrap();
-    let nomes = input[..comma_index].parse::<u128>().unwrap();
-    let expr = input[(comma_index + 1)..].to_string();
-    let mut res = String::from("{\n");
-    for k in 0..=nomes {
-        let copy = expr.clone().replace("^", &format!("{k}.0"));
-        res.push_str(&format!("const a{k}: f64 = {copy};\n"));
+struct FFATArgs {
+    terms: usize,
+    coef_expression: TokenStream2,
+    x_type: Ident,
+}
+
+impl Parse for FFATArgs {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        let x_type = input.parse()?;
+        input.parse::<Token![,]>()?;
+        let terms = input.parse::<LitInt>()?.base10_parse()?;
+        input.parse::<Token![,]>()?;
+        let coef_expression = input.parse()?;
+        Ok(Self {
+            terms,
+            coef_expression,
+            x_type,
+        })
     }
-    res.push_str("|x| { a0 + ");
-    for k in 1..=nomes {
-        res.push_str(&format!("x * (a{k} +"));
-    }
-    res.push_str("0.0");
-    for _ in 1..=nomes {
-        res.push_str(")");
-    }
-    res.push_str("}\n}");
-    res.parse().unwrap()
+}
+
+fn coefficient(name: char, term: usize) -> Ident {
+    Ident::new(&format!("{}_{}", name, term), Span::call_site())
 }
 
 #[proc_macro]
-pub fn ffrt(item: TokenStream) -> TokenStream {
+pub fn function_factored_absolute_tailor(input: TokenStream) -> TokenStream {
+    let FFATArgs {
+        terms,
+        coef_expression,
+        x_type,
+    } = parse_macro_input!(input as FFATArgs);
+    let mut n = terms - 1;
+    let c = coefficient('a', n);
+    let mut constants = quote! (
+    let n = #n;
+    let #c = #coef_expression;
+    );
+    let mut evaluation = quote!(#c);
+    while n > 0 {
+        n -= 1;
+        let c = coefficient('a', n);
+        evaluation = quote! (
+            #c
+            + (&x).clone() * (#evaluation)
+        );
+        constants = quote! (
+        #constants
+        let n = #n;
+        let #c = #coef_expression;
+        );
+    }
+
+    quote! {
+    {
+        #constants
+        move |x: #x_type| #evaluation
+    }
+        }
+    .into()
+}
+
+#[proc_macro]
+pub fn function_factored_relative_tailor(item: TokenStream) -> TokenStream {
     let input = item.to_string();
     let comma_index = input.find(',').unwrap();
     let nomes = input[..comma_index].parse::<u128>().unwrap();
@@ -73,3 +115,5 @@ pub fn fffbt(item: TokenStream) -> TokenStream {
     res.push_str("res\n}\n}");
     res.parse().unwrap()
 }
+
+// TODO add multi-cycled expansions

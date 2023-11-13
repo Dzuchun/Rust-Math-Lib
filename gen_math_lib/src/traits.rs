@@ -1,53 +1,6 @@
 use std::{marker::PhantomData, ops::Div};
 
-use num_traits::{CheckedMul, One, Pow, Signed};
-
-pub trait Sequential {
-    fn inc(&mut self);
-    fn dec(&mut self);
-
-    fn next(&self) -> Self;
-    fn prev(&self) -> Self;
-}
-
-macro_rules! seq_impl {
-    {$name:ty, $one:literal} => {
-        impl Sequential for $name {
-            fn inc(&mut self) {
-                *self += $one;
-            }
-
-            fn dec(&mut self) {
-                *self -= $one;
-            }
-
-            fn next(&self) -> Self {
-                *self + $one
-            }
-
-            fn prev(&self) -> Self {
-                *self - $one
-            }
-        }
-    };
-}
-
-seq_impl! {i8, 1}
-seq_impl! {i16, 1}
-seq_impl! {i32, 1}
-seq_impl! {i64, 1}
-seq_impl! {i128, 1}
-seq_impl! {isize, 1}
-
-seq_impl! {u8, 1}
-seq_impl! {u16, 1}
-seq_impl! {u32, 1}
-seq_impl! {u64, 1}
-seq_impl! {u128, 1}
-seq_impl! {usize, 1}
-
-seq_impl! {f32, 1.0}
-seq_impl! {f64, 1.0}
+use num_traits::{One, Signed};
 
 pub trait Reciprocal {
     type Output;

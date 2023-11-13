@@ -1,4 +1,4 @@
-use gen_math_lib::memoized::*;
+use gen_math_lib::memoized::{self};
 
 #[test]
 fn memo_1() {
@@ -7,7 +7,7 @@ fn memo_1() {
         println!("Called for {x}!");
         x.powf(3.53653) / (1.0 - x.exp())
     };
-    let mut memoized = Memoized::from(&func, 1.0);
+    let memoized = memoized::from_fn::<_, _, _, u8>(&func, 1.0);
     const ARGS: [f64; 10] = [1.1, 1.11, 1.12, 0.13, 0.14, 0.15, 0.16, 0.17, 0.18, 0.19];
 
     // act

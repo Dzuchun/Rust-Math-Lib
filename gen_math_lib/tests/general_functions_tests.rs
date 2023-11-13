@@ -1,12 +1,11 @@
-use gen_math_lib::general_functions::*;
-use gen_math_lib::memoized::Memoized;
+use gen_math_lib::{general_functions::*, memoized};
 use rand::Rng;
 
 #[test]
 #[ignore = "used in manual mode only"]
 fn e1_test() {
     // arrange
-    let mut func = Memoized::from(&E1, 0.1);
+    let func = memoized::from_fn::<_, _, _, u8>(&E1, 0.1);
     let mut rng = rand::thread_rng();
 
     // act
@@ -24,7 +23,7 @@ fn e1_test() {
 fn ei_test() {
     // arrange
     let func = |x| *EI(x).get_or_insert(0.0);
-    let mut func = Memoized::from(&func, 0.1);
+    let func = memoized::from_fn::<_, _, _, u8>(&func, 0.1);
     let mut rng = rand::thread_rng();
 
     // act
@@ -42,7 +41,7 @@ fn ei_test() {
 fn li_test() {
     // arrange
     let func = |x| *LI(x).get_or_insert(0.0);
-    let mut func = Memoized::from(&func, 0.05);
+    let func = memoized::from_fn::<_, _, _, u8>(&func, 0.05);
     let mut rng = rand::thread_rng();
 
     // act

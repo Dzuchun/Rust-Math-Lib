@@ -1,6 +1,7 @@
-use function_macros::{ffat, fffbt, ffrt};
+use function_macros::{function_factored_absolute_tailor, function_factored_relative_tailor};
 
-const EXP_M_2: fn(f64) -> f64 = ffrt!(30, if ^ == 0.0 {1.0} else { 1.0 / ^ });
+const EXP_M_2: fn(f64) -> f64 =
+    function_factored_relative_tailor!(30, if ^ == 0.0 {1.0} else { 1.0 / ^ });
 pub const EXP: fn(f64) -> f64 = |x: f64| {
     let mut additions = 0;
     let mut x = x;
@@ -15,8 +16,19 @@ pub const EXP: fn(f64) -> f64 = |x: f64| {
     EXP_M_2(x) * EXP_M_2(2.0f64).powi(additions)
 };
 
-const LN_X_M_1: fn(f64) -> f64 =
-    ffat!(30, if ^ == 0.0 {0.0} else { if ^ % 2.0 == 0.0 { -1.0 / ^ } else { 1.0 / ^ } });
+const LN_X_M_1: fn(f64) -> f64 = function_factored_absolute_tailor!(
+    30,
+    if n == 0.0 {
+        0.0
+    } else {
+        if n % 2.0 == 0.0 {
+            -1.0 / (n as f64)
+        } else {
+            1.0 / (n as f64)
+        }
+    },
+    f64
+);
 
 pub const LN: fn(f64) -> Option<f64> = |x: f64| {
     if x <= 0.0 {
