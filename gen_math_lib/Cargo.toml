@@ -7,10 +7,12 @@ edition = "2021"
 
 [dependencies]
 function_macros = { path="../function_macros" }
+kutta_macros = { path="../kutta_macros" }
 nalgebra = "0.32.3"
 num = "0.4.1"
 num-traits = "0.2.17"
 rand = "0.8.4"
+lazy_static = "1.4.0"
 
 [dev-dependencies]
 approx = "0.5.1"

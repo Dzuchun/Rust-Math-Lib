@@ -1,7 +1,12 @@
 use function_macros::{factored_absolute_tailor, factored_relative_multitailor};
+use num::traits::FromPrimitive;
+
+fn float(n: usize) -> f64 {
+    <f64 as FromPrimitive>::from_usize(n).expect("Why would you need that many terms?")
+}
 
 pub fn exp_m_2() -> impl Fn(f64) -> f64 {
-    factored_relative_multitailor!(f64, 30, 1.0; 1.0/(n as f64))
+    factored_relative_multitailor!(f64, 30, 1.0; 1.0/float(n))
 }
 
 pub fn exp() -> impl Fn(f64) -> f64 {
@@ -29,7 +34,7 @@ pub fn ln_x_r_1() -> impl Fn(f64) -> f64 {
         if n == 0 {
             0.0
         } else {
-            let nf = n as f64;
+            let nf = float(n);
             if n % 2 == 0 {
                 -1.0 / nf
             } else {
@@ -56,13 +61,13 @@ pub fn ln() -> impl Fn(f64) -> Option<f64> {
             additions += 1;
             x /= 1.5;
         }
-        Some(tlr(x - 1.0) + (additions as f64) * ln_hf)
+        Some(tlr(x - 1.0) + f64::from(additions) * ln_hf)
     }
 }
 
 pub fn sin_m_2() -> impl Fn(f64) -> f64 {
     factored_relative_multitailor!(f64, 25, 0.0, 1.0; 0.0, {
-        let nf = n as f64;
+        let nf = float(n);
         -1.0 / nf / (nf - 1.0)
     })
 }
@@ -78,12 +83,10 @@ pub fn sin() -> impl Fn(f64) -> f64 {
             } else {
                 tlr(PI - x)
             }
+        } else if x < FRAC_PI_2 * 3.0 {
+            -tlr(x - PI)
         } else {
-            if x < FRAC_PI_2 * 3.0 {
-                -tlr(x - PI)
-            } else {
-                -tlr(TAU - x)
-            }
+            -tlr(TAU - x)
         }
     }
 }

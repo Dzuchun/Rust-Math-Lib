@@ -1,7 +1,7 @@
 use num_traits::One;
 
 use crate::integration::euler;
-use crate::macro_functions::*;
+use crate::macro_functions::{exp, ln};
 use crate::traits::Metrized;
 
 use std::ops::{Add, Mul};
@@ -44,7 +44,7 @@ pub fn li() -> impl Fn(f64) -> Option<f64> {
                 } else if t.distance(&1.0) < 1E-3 {
                     1000.0
                 } else {
-                    1.0 / ln(t).unwrap()
+                    1.0 / ln(t).expect("I'll REMOVE THAT NOW!!")
                 }
             }))
         }

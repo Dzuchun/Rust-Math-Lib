@@ -1,4 +1,4 @@
-use std::{cell::RefCell, ops::Sub};
+use std::{cell::RefCell, cmp::Ordering, ops::Sub};
 
 use nalgebra::{ComplexField, Scalar, U7};
 
@@ -45,8 +45,11 @@ where
             .into_iter()
             .map(move |(cx, cy)| (cx.clone() - xi.clone(), cy.clone()))
             .collect();
-        close_calls
-            .sort_by(|(k1, _), (k2, _)| k1.distance(&x).partial_cmp(&k2.distance(&x)).unwrap());
+        close_calls.sort_by(|(k1, _), (k2, _)| {
+            k1.distance(&x)
+                .partial_cmp(&k2.distance(&x))
+                .unwrap_or(Ordering::Equal)
+        });
         drop(brw);
         let close_calls: [(X, X); 7] = [
             close_calls[0].clone(),
@@ -60,37 +63,45 @@ where
         let main_matrix = nalgebra::Matrix::from_iterator_generic(
             U7,
             U7,
-            close_calls[..7]
-                .into_iter()
-                .map(move |(cx, _)| {
-                    let dx = cx.clone();
-                    std::array::from_fn::<X, 7, _>(move |i| {
-                        dx.clone().pow(P::from_usize(i).unwrap())
-                    })
+            close_calls[..7].iter().flat_map(move |(cx, _)| {
+                let dx = cx.clone();
+                std::array::from_fn::<X, 7, _>(move |i| {
+                    dx.clone().pow(
+                        P::from_usize(i)
+                            .expect("Should be able to raise elements into usize-compatible power"),
+                    )
                 })
-                .flatten(),
+            }),
         );
         let main_det = main_matrix.determinant();
-        let aux_matrix = nalgebra::Matrix::from_iterator_generic(
-            U7,
-            U7,
-            close_calls[..7]
-                .into_iter()
-                .map(move |(cx, cy)| {
+        let aux_matrix =
+            nalgebra::Matrix::from_iterator_generic(
+                U7,
+                U7,
+                close_calls[..7].iter().flat_map(move |(cx, cy)| {
                     let dx = cx.clone();
                     [
                         cy.clone(),
                         dx.clone(),
-                        dx.clone().pow(P::from_usize(2).unwrap()),
-                        dx.clone().pow(P::from_usize(3).unwrap()),
-                        dx.clone().pow(P::from_usize(4).unwrap()),
-                        dx.clone().pow(P::from_usize(5).unwrap()),
-                        dx.clone().pow(P::from_usize(6).unwrap()),
+                        dx.clone().pow(P::from_usize(2).expect(
+                            "Should be able to raise elements into usize-compatible power",
+                        )),
+                        dx.clone().pow(P::from_usize(3).expect(
+                            "Should be able to raise elements into usize-compatible power",
+                        )),
+                        dx.clone().pow(P::from_usize(4).expect(
+                            "Should be able to raise elements into usize-compatible power",
+                        )),
+                        dx.clone().pow(P::from_usize(5).expect(
+                            "Should be able to raise elements into usize-compatible power",
+                        )),
+                        dx.pow(P::from_usize(6).expect(
+                            "Should be able to raise elements into usize-compatible power",
+                        )),
                     ]
                     .into_iter()
-                })
-                .flatten(),
-        );
+                }),
+            );
         let aux_det = aux_matrix.determinant();
 
         let estimated = aux_det / main_det;

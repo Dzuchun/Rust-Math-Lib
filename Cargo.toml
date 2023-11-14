@@ -3,4 +3,5 @@
 members = [
     "gen_math_lib",
     "function_macros",
+    "kutta_macros",
 ]

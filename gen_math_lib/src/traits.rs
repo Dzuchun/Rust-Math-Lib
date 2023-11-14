@@ -62,12 +62,12 @@ pub struct FnReversed<X, Y, Fwd, Bwd> {
 }
 
 pub fn fn_reversed<X, Y>(
-    fwd: impl Fn(X) -> Option<Y>,
-    bwd: impl Fn(Y) -> Option<X>,
+    forward: impl Fn(X) -> Option<Y>,
+    backward: impl Fn(Y) -> Option<X>,
 ) -> impl Reversible<X, Y> {
     FnReversed {
-        fwd_fn: fwd,
-        bwd_fn: bwd,
+        fwd_fn: forward,
+        bwd_fn: backward,
         _ph: PhantomData,
     }
 }

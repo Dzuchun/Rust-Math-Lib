@@ -6,3 +6,4 @@ pub mod memoized;
 pub mod numbers;
 pub mod progression;
 pub mod traits;
+pub mod util;

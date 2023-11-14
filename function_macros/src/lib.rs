@@ -19,8 +19,8 @@ impl Parse for TailorArgs {
         let coef_expression = input.parse()?;
         Ok(Self {
             terms,
-            coef_expression,
             x_type,
+            coef_expression,
         })
     }
 }
@@ -109,9 +109,9 @@ impl Parse for MultiTailorArgs {
 
         Ok(Self {
             terms,
+            x_type,
             first_expressions,
             transitive_expressions,
-            x_type,
         })
     }
 }
@@ -130,13 +130,11 @@ pub fn factored_relative_multitailor(input: TokenStream) -> TokenStream {
         let period = first_expressions.len();
         let mut constants = quote!();
         let mut c;
-        let mut first_expression;
-        for i in 0..period {
+        for (i, first_expression) in first_expressions.iter().enumerate() {
             if i >= terms {
                 break 'consts constants;
             }
             c = coefficient('a', i);
-            first_expression = &first_expressions[i];
             constants = quote!(
                 #constants
                 let #c = #first_expression;
