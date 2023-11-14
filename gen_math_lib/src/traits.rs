@@ -1,103 +1,106 @@
-pub trait Sequential {
-    fn inc(&mut self);
-    fn dec(&mut self);
+use std::marker::PhantomData;
+
+use num_traits::Signed;
+
+pub trait Reciprocal<O> {
+    fn rcp(&self) -> O;
+    fn invs(self) -> O;
 }
 
-impl Sequential for i32 {
-    fn inc(&mut self) {
-        *self += 1;
-    }
+macro_rules! impl_for_int {
+    ($tp:ty) => {
+        impl Reciprocal<f64> for $tp {
+            fn rcp(&self) -> f64 {
+                self.invs()
+            }
 
-    fn dec(&mut self) {
-        *self -= 1;
-    }
-}
-
-pub trait Recipical {
-    type Rec;
-    fn recipical(&self) -> Option<Self::Rec>;
-}
-
-impl Recipical for i32 {
-    type Rec = f64;
-    fn recipical(&self) -> Option<f64> {
-        if *self == 0 {
-            return None;
-        } else {
-            return Some(1.0 / (*self as f64));
+            fn invs(self) -> f64 {
+                1.0f64 / (self as f64)
+            }
         }
+    };
+}
+
+impl_for_int! {usize}
+impl_for_int! {u8}
+impl_for_int! {u16}
+impl_for_int! {u32}
+impl_for_int! {u64}
+impl_for_int! {u128}
+
+impl_for_int! {isize}
+impl_for_int! {i8}
+impl_for_int! {i16}
+impl_for_int! {i32}
+impl_for_int! {i64}
+impl_for_int! {i128}
+
+impl_for_int! {f32}
+impl_for_int! {f64}
+
+pub trait Reversible<X, Y> {
+    fn fwd(&self, x: X) -> Y;
+    fn bwd(&self, y: Y) -> X;
+}
+
+pub struct FnReversed<X, Y, Fwd, Bwd> {
+    fwd_fn: Fwd,
+    bwd_fn: Bwd,
+    _ph: PhantomData<(X, Y)>,
+}
+
+pub fn fn_reversed<X, Y>(
+    forward: impl Fn(X) -> Y,
+    backward: impl Fn(Y) -> X,
+) -> impl Reversible<X, Y> {
+    FnReversed {
+        fwd_fn: forward,
+        bwd_fn: backward,
+        _ph: PhantomData,
     }
 }
 
-pub struct Reversible<T, U> {
-    pub call_box: Box<dyn Fn(T) -> Option<U>>,
-    pub rev_box: Box<dyn Fn(U) -> Option<T>>,
-}
-
-impl<T, U> Reversible<T, U> {
-    pub fn call(&self, arg: T) -> Option<U> {
-        (*self.call_box)(arg)
+impl<X, Y, Fwd, Bwd> Reversible<X, Y> for FnReversed<X, Y, Fwd, Bwd>
+where
+    Fwd: Fn(X) -> Y,
+    Bwd: Fn(Y) -> X,
+{
+    fn fwd(&self, x: X) -> Y {
+        (self.fwd_fn)(x)
     }
 
-    pub fn rev(&self, arg: U) -> Option<T> {
-        (*self.rev_box)(arg)
-    }
-}
-
-impl Reversible<f64, f64> {
-    pub fn pow(e: f64) -> Reversible<f64, f64> {
-        let r = 1.0 / e;
-        return Reversible {
-            call_box: Box::new(move |x| {
-                let res = x.powf(e);
-                if !res.is_nan() {
-                    Some(res)
-                } else {
-                    None
-                }
-            }),
-            rev_box: Box::new(move |y| {
-                let res = y.powf(r);
-                if !res.is_nan() {
-                    Some(res)
-                } else {
-                    None
-                }
-            }),
-        };
+    fn bwd(&self, y: Y) -> X {
+        (self.bwd_fn)(y)
     }
 }
 
-pub trait Zero {
-    fn zero() -> &'static Self;
-}
-
-impl Zero for i32 {
-    fn zero() -> &'static Self {
-        const R: i32 = 0;
-        &R
+impl<X, Y, Fwd, Bwd> Reversible<X, Y> for (Fwd, Bwd)
+where
+    Fwd: Fn(X) -> Y,
+    Bwd: Fn(Y) -> X,
+{
+    fn fwd(&self, x: X) -> Y {
+        self.0(x)
     }
-}
-impl Zero for f64 {
-    fn zero() -> &'static Self {
-        const R: f64 = 0.0;
-        &R
+
+    fn bwd(&self, y: Y) -> X {
+        self.1(y)
     }
 }
 
 pub trait Metrized {
-    fn distance(&self, other: &Self) -> f64;
+    type Output;
+
+    fn distance(&self, other: &Self) -> Self::Output;
 }
 
-impl Metrized for i32 {
-    fn distance(&self, other: &i32) -> f64 {
-        (*self - *other).abs() as f64
-    }
-}
-
-impl Metrized for f64 {
-    fn distance(&self, other: &f64) -> f64 {
-        (*self - *other).abs()
+impl<T> Metrized for T
+where
+    T: Signed,
+{
+    type Output = Self;
+    fn distance(&self, other: &Self) -> Self {
+        self.abs_sub(other).abs()
     }
 }
 

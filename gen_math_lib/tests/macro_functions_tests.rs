@@ -1,4 +1,5 @@
 use gen_math_lib::macro_functions::*;
+use gen_math_lib::progression::arithmetic_bounded;
 use gen_math_lib::traits::Metrized;
 
 #[test]
@@ -7,7 +8,7 @@ fn exp_1() {
     let a = 1.0;
 
     // act
-    let res = EXP(a);
+    let res = exp()(a);
 
     assert!(res.distance(&std::f64::consts::E) < 1E-7);
 }
@@ -18,7 +19,7 @@ fn exp_2() {
     let a = 0.0;
 
     // act
-    let res = EXP(a);
+    let res = exp()(a);
 
     assert!(res.distance(&1.0) < 1E-7);
 }
@@ -29,7 +30,7 @@ fn exp_3() {
     let a = -1.0;
 
     // act
-    let res = EXP(a);
+    let res = exp()(a);
 
     assert!(res.distance(&(1.0 / std::f64::consts::E)) < 1E-7);
 }
@@ -40,7 +41,7 @@ fn exp_4() {
     let a = -100.0;
 
     // act
-    let res = EXP(a);
+    let res = exp()(a);
 
     assert!(res.distance(&0.0) < 1E-7, "{res}");
 }
@@ -51,7 +52,7 @@ fn ln_1() {
     let a = 1.0;
 
     // act
-    let res = LN(a);
+    let res = ln()(a);
 
     // assert
     let res = res.unwrap();
@@ -64,7 +65,7 @@ fn ln_2() {
     let a = 2.0;
 
     // act
-    let res = LN(a);
+    let res = ln()(a);
 
     // assert
     let res = res.unwrap();
@@ -78,7 +79,7 @@ fn ln_3() {
     let a = -1.0;
 
     // act
-    let res = LN(a);
+    let res = ln()(a);
 
     // assert
     assert!(res.is_none())
@@ -86,14 +87,13 @@ fn ln_3() {
 
 #[test]
 fn sin_1() -> Result<(), String> {
-    use gen_math_lib::progression::arith;
     use std::f64::consts::TAU;
 
     // arrange
-    let a = arith(-TAU, TAU, 0.1)?.collect::<Vec<f64>>();
+    let a = arithmetic_bounded(-TAU, TAU, 0.1).collect::<Vec<f64>>();
 
     // act
-    let res = a.iter().map(|x| SIN(*x)).collect::<Vec<f64>>();
+    let res = a.iter().map(|x| sin()(*x)).collect::<Vec<f64>>();
     let expected = a
         .into_iter()
         .map(|x| (x, x.sin()))
@@ -112,14 +112,13 @@ fn sin_1() -> Result<(), String> {
 
 #[test]
 fn cos_1() -> Result<(), String> {
-    use gen_math_lib::progression::arith;
     use std::f64::consts::TAU;
 
     // arrange
-    let a = arith(-TAU, TAU, 0.1)?.collect::<Vec<f64>>();
+    let a = arithmetic_bounded(-TAU, TAU, 0.1).collect::<Vec<f64>>();
 
     // act
-    let res = a.iter().map(|x| COS(*x)).collect::<Vec<f64>>();
+    let res = a.iter().map(|x| cos()(*x)).collect::<Vec<f64>>();
     let expected = a
         .into_iter()
         .map(|x| (x, x.cos()))
@@ -143,7 +142,7 @@ fn sinc_1() {
     // arrange
 
     // act
-    let res = integration::euler(0.0, 1000.0, SINC, 1E-7, 1E-4);
+    let res = integration::euler(0.0, 1000.0, 1E-7, 1E-4, sinc());
 
     // assert
     let deviation = res.distance(&std::f64::consts::FRAC_PI_2) / std::f64::consts::FRAC_PI_2;

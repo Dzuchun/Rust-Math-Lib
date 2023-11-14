@@ -4,7 +4,7 @@ pub fn pochhammer(n: &u128, k: &u128) -> Option<u128> {
         if result > u128::MAX / p {
             return None;
         }
-        result *= p as u128;
+        result *= p;
     }
     Some(result)
 }

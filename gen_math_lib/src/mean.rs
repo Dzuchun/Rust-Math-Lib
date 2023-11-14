@@ -1,77 +1,73 @@
-use std::iter::Iterator;
+use std::{
+    iter::Iterator,
+    ops::{AddAssign, Div, MulAssign},
+};
 
-pub fn arith<T>(nums: &mut T) -> Option<f64>
+use num_traits::{One, Pow, Zero};
+
+pub fn arith<T, I, D>(nums: I) -> T
 where
-    T: Iterator<Item = f64>,
+    I: IntoIterator<Item = T>,
+    T: Zero + AddAssign + FromPrimitive + Div<D, Output = T>,
+    D: FromPrimitive,
 {
-    let mut sum: f64 = nums.next()?;
-    let mut l: usize = 1;
-    while let Some(n) = nums.next() {
-        sum += n;
-        l += 1;
-    }
-    Some(sum / (l as f64))
+    let fold = nums.into_iter().fold((T::zero(), 0usize), |mut acc, next| {
+        acc.0 += next;
+        acc.1 += 1;
+        acc
+    });
+    fold.0 / D::from_usize(fold.1).expect("Should be able to convert into type D")
 }
 
-pub fn harmonic<T>(nums: &mut T) -> Option<f64>
+pub fn harmonic<T, Ti, I, D>(nums: I) -> T
 where
-    T: Iterator<Item = f64>,
+    I: IntoIterator<Item = T>,
+    T: Reciprocal<Ti>,
+    Ti: Zero + AddAssign + Reciprocal<T> + Div<D, Output = Ti> + FromPrimitive,
+    D: FromPrimitive,
 {
-    let first: f64 = nums.next()?;
-    if first == 0.0 {
-        return Some(0.0);
-    }
-    if first < 0.0 {
-        return None;
-    }
-    let mut sum: f64 = 1.0 / first;
-    let mut l: usize = 1;
-    while let Some(n) = nums.next() {
-        if n == 0.0 {
-            return Some(0.0);
-        }
-        if n < 0.0 {
-            return None;
-        }
-        sum += 1.0 / n;
-        l += 1;
-    }
-    if sum == 0.0 {
-        return Some(f64::INFINITY);
-    }
-    Some((l as f64) / sum)
+    let fold = nums
+        .into_iter()
+        .fold((Ti::zero(), 0usize), |mut acc, next| {
+            acc.0 += next.invs();
+            acc.1 += 1;
+            acc
+        });
+    let divided: Ti =
+        fold.0 / D::from_usize(fold.1).expect("Should be able to convert into type D");
+    divided.invs()
 }
 
-pub fn geometric<T>(nums: &mut T) -> Option<f64>
+pub fn geometric<T, Ti, I, P>(nums: I) -> T
 where
-    T: Iterator<Item = f64>,
+    I: IntoIterator<Item = T>,
+    Ti: One + MulAssign<T> + Pow<P, Output = T>,
+    P: From<f64>,
 {
-    let mut prod: f64 = nums.next()?;
-    let mut l: usize = 1;
-    while let Some(n) = nums.next() {
-        prod *= n;
-        if prod == 0.0 {
-            return Some(0.0);
-        }
-        l += 1;
-    }
-    Some(prod.powf(1.0 / (l as f64)))
+    let fold = nums.into_iter().fold((Ti::one(), 0), |mut acc, next| {
+        acc.0 *= next;
+        acc.1 += 1;
+        acc
+    });
+    fold.0.pow(P::from(fold.1.invs()))
 }
 
-use crate::traits::Reversible;
+use num_traits::FromPrimitive;
 
-pub fn init_general<T>(func: Reversible<f64, f64>) -> Box<dyn Fn(&mut T) -> Option<f64>>
+use crate::traits::{Reciprocal, Reversible};
+
+pub fn general<T, Ti, I, F, D>(func: F, nums: I) -> T
 where
-    T: Iterator<Item = f64>,
+    I: IntoIterator<Item = T>,
+    Ti: Zero + AddAssign + Div<D, Output = Ti> + FromPrimitive,
+    F: Reversible<T, Ti>,
+    D: FromPrimitive,
 {
-    Box::new(move |nums: &mut T| {
-        let first: f64 = nums.next()?;
-        let mut sum = func.call(first)?;
-        let mut l: usize = 1;
-        while let Some(n) = nums.next() {
-            sum += func.call(n)?;
-            l += 1;
-        }
-        Some(func.rev(sum / (l as f64))?)
-    })
+    let mut sum = Ti::zero();
+    let mut count = 0;
+    for next in nums {
+        sum += func.fwd(next);
+        count += 1;
+    }
+    func.bwd(sum / D::from_usize(count).expect("Should be able to convert into type D"))
 }

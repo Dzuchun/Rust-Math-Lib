@@ -1,120 +1,76 @@
-use crate::traits::Zero;
 use std::{
     iter::Iterator,
-    ops::{AddAssign, Div, MulAssign, Sub},
+    ops::{Add, Mul},
 };
-pub trait ArithIteratorType:
-    Sized
-    + AddAssign
-    + Sub<Output = Self>
-    + Div<Output = Self>
-    + Zero
-    + PartialOrd<Self>
-    + Copy
-    + 'static
+
+use num_traits::Zero;
+
+struct ArithmeticIterator<V> {
+    current: V,
+    step: V,
+}
+
+impl<V> Iterator for ArithmeticIterator<V>
+where
+    V: Clone + Add<V, Output = V>,
 {
-}
-
-impl ArithIteratorType for f64 {}
-impl ArithIteratorType for i32 {}
-
-struct ArithIterator<T: ArithIteratorType> {
-    current: T,
-    end: T,
-    step: T,
-}
-
-impl<T: ArithIteratorType> Iterator for ArithIterator<T> {
-    type Item = T;
-    fn next(&mut self) -> Option<Self::Item> {
-        if (self.end - self.current) / self.step < *T::zero() {
-            None
-        } else {
-            let tmp = self.current;
-            self.current += self.step;
-            Some(tmp)
-        }
-    }
-}
-
-pub fn arith<T: ArithIteratorType>(
-    begin: T,
-    end: T,
-    step: T,
-) -> Result<Box<dyn Iterator<Item = T>>, String> {
-    if step == *T::zero() && begin == end {
-        return Ok(Box::new([begin].into_iter()));
-    }
-    if step == *T::zero() || (end - begin) / step < *T::zero() {
-        Err(String::from(format!(
-            "Iterator must be able to reach <end> by adding <step> to <begin> value."
-        )))
-    } else {
-        Ok(Box::new(ArithIterator {
-            current: begin,
-            end,
-            step,
-        }))
-    }
-}
-
-use crate::traits::Metrized;
-pub trait GeometricIteratorType:
-    Sized + Div<Output = Self> + Metrized + Copy + MulAssign + Zero + PartialEq + 'static
-{
-}
-
-impl GeometricIteratorType for i32 {}
-impl GeometricIteratorType for f64 {}
-
-struct GeometricIterator<T: GeometricIteratorType> {
-    current: T,
-    end: T,
-    step: T,
-}
-
-impl<T: GeometricIteratorType> Iterator for GeometricIterator<T> {
-    type Item = T;
+    type Item = V;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if (self.end / self.current).distance(&T::zero()).ln() / self.step.distance(&T::zero()).ln()
-            < 0.0
-        {
-            None
-        } else {
-            let tmp: T = self.current;
-            self.current *= self.step;
-            Some(tmp)
-        }
+        let new = self.current.clone() + self.step.clone();
+        Some(std::mem::replace(&mut self.current, new))
     }
 }
 
-pub fn geometric<T: GeometricIteratorType>(
-    begin: T,
-    end: T,
-    denominator: T,
-) -> Result<Box<dyn Iterator<Item = T>>, String> {
-    if (denominator == *T::zero() && end == *T::zero())
-        || (denominator.distance(T::zero()) == 1.0 && begin.distance(&end) == 0.0)
-    {
-        if begin == end {
-            return Ok(Box::new([end].into_iter()));
-        } else {
-            return Ok(Box::new([begin, end].into_iter()));
-        }
+pub fn arithmetic<V>(start: V, step: V) -> impl Iterator<Item = V>
+where
+    V: Clone + Add<V, Output = V>,
+{
+    ArithmeticIterator {
+        current: start,
+        step,
     }
-    if (denominator == *T::zero())
-        || (denominator.distance(T::zero()) == 1.0)
-        || ((end / begin).distance(T::zero()).ln() / denominator.distance(T::zero()).ln() < 0.0)
-    {
-        Err(String::from(format!(
-            "Iterator must be able to reach <end> by multiplying <step> by <begin> value."
-        )))
-    } else {
-        Ok(Box::new(GeometricIterator {
-            current: begin,
-            end,
-            step: denominator,
-        }))
+}
+
+pub fn arithmetic_bounded<V>(start: V, end: V, step: V) -> impl Iterator<Item = V>
+where
+    V: Clone + Add<V, Output = V> + PartialOrd + Zero,
+{
+    let empty = matches!(
+        start.partial_cmp(&end),
+        Some(std::cmp::Ordering::Equal) | None
+    );
+    let finite = start.partial_cmp(&end) == V::zero().partial_cmp(&step);
+    let go = !empty & finite;
+    arithmetic(start.clone(), step)
+        .take_while(move |v| go && start.partial_cmp(&end) == v.partial_cmp(&end))
+}
+
+struct GeometricIterator<V, M> {
+    current: V,
+    denominator: M,
+}
+
+impl<V, M> Iterator for GeometricIterator<V, M>
+where
+    V: Clone + Mul<M, Output = V>,
+    M: Clone,
+{
+    type Item = V;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let new = self.current.clone() * self.denominator.clone();
+        Some(std::mem::replace(&mut self.current, new))
+    }
+}
+
+pub fn geometric<V, M>(start: V, denominator: M) -> impl Iterator<Item = V>
+where
+    V: Clone + Mul<M, Output = V>,
+    M: Clone,
+{
+    GeometricIterator {
+        current: start,
+        denominator,
     }
 }
