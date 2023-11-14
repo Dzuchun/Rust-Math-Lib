@@ -23,6 +23,6 @@ fn macro1() {
 
 #[test]
 fn macro2() {
-    let e = factored_relative_tailor!(f64, 30, if n == 0 { 1.0 } else { 1.0 / (n as f64) })(1.0);
+    let e = factored_relative_multitailor!(f64, 30, 1.0; 1.0 / (n as f64))(1.0);
     println!("{}", e - std::f64::consts::E);
 }

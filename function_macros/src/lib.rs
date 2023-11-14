@@ -29,16 +29,16 @@ fn coefficient(name: char, term: usize) -> Ident {
     Ident::new(&format!("{}_{}", name, term), Span::call_site())
 }
 
-fn evaluation(terms: usize) -> TokenStream2 {
+fn evaluation(x_type: &Ident, terms: usize) -> TokenStream2 {
     let mut n = terms - 1;
     let mut c = coefficient('a', n);
-    let mut evaluation = quote!(#c);
+    let mut evaluation = quote!(<#x_type as Clone>::clone(&#c));
     while n > 0 {
         n -= 1;
         c = coefficient('a', n);
         evaluation = quote! (
-            #c.clone()
-            + (&x).clone() * (#evaluation)
+            <#x_type as Clone>::clone(&#c)
+            + <#x_type as Clone>::clone(&x) * (#evaluation)
         );
     }
     evaluation
@@ -51,7 +51,7 @@ pub fn factored_absolute_tailor(input: TokenStream) -> TokenStream {
         coef_expression,
         x_type,
     } = parse_macro_input!(input as TailorArgs);
-    let evaluation = evaluation(terms);
+    let evaluation = evaluation(&x_type, terms);
 
     let mut c = coefficient('a', 0);
     let mut constants = quote! (
@@ -124,7 +124,7 @@ pub fn factored_relative_multitailor(input: TokenStream) -> TokenStream {
         transitive_expressions,
         x_type,
     } = parse_macro_input!(input as MultiTailorArgs);
-    let evaluation = evaluation(terms);
+    let evaluation = evaluation(&x_type, terms);
 
     let constants = 'consts: {
         let period = first_expressions.len();
@@ -157,7 +157,7 @@ pub fn factored_relative_multitailor(input: TokenStream) -> TokenStream {
             constants = quote!(
                 #constants
                 n = #n;
-                let #c = #prev_c.clone() * {#transitive_expression};
+                let #c = <#x_type as Clone>::clone(&#prev_c) * {#transitive_expression};
             );
             i += 1;
             if i == period {

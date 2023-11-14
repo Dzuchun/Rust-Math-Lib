@@ -90,3 +90,20 @@ fn asin_as_hg() {
         .map(|x| (x, asin(x)))
         .for_each(|(x, y)| println!("{x} {y}"));
 }
+
+#[test]
+#[ignore = "used in manual mode only"]
+fn matrix_hg() {
+    // arrange
+    let hg = hypergeometric(0.5, 0.5, 1.5);
+    let matrix = nalgebra::matrix![
+        0.0,1.0;
+        1.0,0.0;
+    ];
+
+    // act
+    let res = hg(matrix);
+
+    // assert
+    println!("{res:?}");
+}

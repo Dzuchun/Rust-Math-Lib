@@ -1,6 +1,10 @@
+use num_traits::One;
+
 use crate::integration::euler;
 use crate::macro_functions::*;
 use crate::traits::Metrized;
+
+use std::ops::{Add, Mul};
 
 pub fn e1() -> impl Fn(f64) -> f64 {
     let exp = exp();
@@ -48,17 +52,21 @@ pub fn li() -> impl Fn(f64) -> Option<f64> {
 }
 
 macro_rules! generalized_hypergeometric {
-    ($($p:expr),+;$($q:expr),+; terms = $terms:expr, type = $type:ty) => {
+    ($($p:expr),+;$($q:expr),+; type = $type:ty, terms = $terms:expr) => {
         ::function_macros::factored_relative_multitailor!($type, $terms, <$type as num::traits::One>::one(); {
             let nf = n as f64 - 1.0;
-            <$type as num::traits::One>::one() $(*($p + nf))+ $(/($q + nf))+ /(nf + 1.0)
+            <$type as num::traits::One>::one() * (1.0 $(*($p + nf))+ $(/($q + nf))+ /(nf + 1.0) )
         })
     };
-    ($($p:expr),+;$($q:expr),+) => {
-        generalized_hypergeometric!($($p),+;$($q),+; terms = 20, type = f64)
+    ($($p:expr),+;$($q:expr),+; type = $type:ty) => {
+        generalized_hypergeometric!($($p),+;$($q),+; type = $type, terms = 20)
     }
 }
 
-pub fn hypergeometric(a: f64, b: f64, c: f64) -> impl Fn(f64) -> f64 {
-    generalized_hypergeometric!(a, b; c)
+pub fn hypergeometric<T: Clone + One + Add<Output = T> + Mul<f64, Output = T>>(
+    a: f64,
+    b: f64,
+    c: f64,
+) -> impl Fn(T) -> T {
+    generalized_hypergeometric!(a, b; c; type = T)
 }
