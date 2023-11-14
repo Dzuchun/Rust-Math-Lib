@@ -36,9 +36,14 @@ pub fn arithmetic_bounded<V>(start: V, end: V, step: V) -> impl Iterator<Item = 
 where
     V: Clone + Add<V, Output = V> + PartialOrd + Zero,
 {
+    let empty = matches!(
+        start.partial_cmp(&end),
+        Some(std::cmp::Ordering::Equal) | None
+    );
     let finite = start.partial_cmp(&end) == V::zero().partial_cmp(&step);
+    let go = !empty & finite;
     arithmetic(start.clone(), step)
-        .take_while(move |v| finite && start.partial_cmp(&end) == v.partial_cmp(&end))
+        .take_while(move |v| go && start.partial_cmp(&end) == v.partial_cmp(&end))
 }
 
 struct GeometricIterator<V, M> {

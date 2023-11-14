@@ -8,21 +8,24 @@ use num_traits::{One, Pow, Zero};
 pub fn arith<T, I>(nums: I) -> Option<T>
 where
     I: IntoIterator<Item = T>,
-    T: Zero + AddAssign + Div<Output = T> + FromPrimitive,
+    T: Zero + AddAssign + FromPrimitive + Div<Output = T>,
 {
     let fold = nums.into_iter().fold((T::zero(), 0usize), |mut acc, next| {
         acc.0 += next;
         acc.1 += 1;
         acc
     });
+    if fold.1 == 0 {
+        return None;
+    }
     Some(fold.0.div(T::from_usize(fold.1)?))
 }
 
 pub fn harmonic<T, Ti, I>(nums: I) -> Option<T>
 where
     I: IntoIterator<Item = T>,
-    T: Reciprocal<Output = Ti>,
-    Ti: Zero + AddAssign + Reciprocal<Output = T> + Div<Output = Ti> + FromPrimitive,
+    T: Reciprocal<Ti>,
+    Ti: Zero + AddAssign + Reciprocal<T> + Div<Output = Ti> + FromPrimitive,
 {
     let fold = nums
         .into_iter()
@@ -31,6 +34,9 @@ where
             acc.1 += 1;
             Some(acc)
         })?;
+    if fold.1 == 0 {
+        return None;
+    }
     let divided: Ti = fold.0.div(Ti::from_usize(fold.1)?);
     divided.invs()
 }
@@ -41,12 +47,15 @@ where
     Ti: One + MulAssign<T> + Pow<P, Output = T>,
     P: FromPrimitive,
 {
-    let fold = nums.into_iter().fold((Ti::one(), 0.0), |mut acc, next| {
+    let fold = nums.into_iter().fold((Ti::one(), 0), |mut acc, next| {
         acc.0 *= next;
-        acc.1 += 1.0;
+        acc.1 += 1;
         acc
     });
-    Some(fold.0.pow(P::from_f32(1.0 / fold.1)?))
+    if fold.1 == 0 {
+        return None;
+    }
+    Some(fold.0.pow(P::from_f64(fold.1.invs()?)?))
 }
 
 use num_traits::FromPrimitive;
@@ -59,12 +68,14 @@ where
     Ti: Zero + AddAssign + Div<Output = Ti> + FromPrimitive,
     F: Reversible<T, Ti>,
 {
-    let fold = nums
-        .into_iter()
-        .fold((Ti::zero(), 0usize), |mut acc, next| {
-            acc.0 += func.fwd(next);
-            acc.1 += 1;
-            acc
-        });
-    Some(func.bwd(fold.0.div(Ti::from_usize(fold.1)?)))
+    let mut sum = Ti::zero();
+    let mut count = 0;
+    for next in nums {
+        sum += func.fwd_checked(next)?;
+        count += 1;
+    }
+    if count == 0 {
+        return None;
+    }
+    Some(func.bwd(sum.div(Ti::from_usize(count)?)))
 }

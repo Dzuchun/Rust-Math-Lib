@@ -5,7 +5,7 @@ use rand::Rng;
 #[ignore = "used in manual mode only"]
 fn e1_test() {
     // arrange
-    let func = memoized::from_fn::<_, _, _, u8>(&E1, 0.1);
+    let func = memoized::from_fn::<_, _, _, u8>(e1(), 0.1);
     let mut rng = rand::thread_rng();
 
     // act
@@ -22,7 +22,8 @@ fn e1_test() {
 #[ignore = "used in manual mode only"]
 fn ei_test() {
     // arrange
-    let func = |x| *EI(x).get_or_insert(0.0);
+    let ei_ = ei();
+    let func = |x| ei_(x).unwrap_or(0.0);
     let func = memoized::from_fn::<_, _, _, u8>(&func, 0.1);
     let mut rng = rand::thread_rng();
 
@@ -40,7 +41,8 @@ fn ei_test() {
 #[ignore = "used in manual mode only"]
 fn li_test() {
     // arrange
-    let func = |x| *LI(x).get_or_insert(0.0);
+    let li_ = li();
+    let func = |x| li_(x).unwrap_or(0.0);
     let func = memoized::from_fn::<_, _, _, u8>(&func, 0.05);
     let mut rng = rand::thread_rng();
 

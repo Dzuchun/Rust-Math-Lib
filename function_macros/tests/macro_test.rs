@@ -3,7 +3,7 @@ use function_macros::*;
 #[test]
 fn macro1() {
     let pow = 0.4;
-    let lnp1 = function_factored_absolute_tailor!(f64, 30, {
+    let lnp1 = factored_absolute_tailor!(f64, 30, {
         {
             if n == 0 {
                 0.0
@@ -23,6 +23,6 @@ fn macro1() {
 
 #[test]
 fn macro2() {
-    let res = function_factored_relative_tailor!(30, if ^ == 0.0 {1.0} else { 1.0 / ^ })(1.0);
-    println!("{res}");
+    let e = factored_relative_tailor!(f64, 30, if n == 0 { 1.0 } else { 1.0 / (n as f64) })(1.0);
+    println!("{}", e - std::f64::consts::E);
 }

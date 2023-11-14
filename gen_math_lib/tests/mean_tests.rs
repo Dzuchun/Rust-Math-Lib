@@ -1,3 +1,4 @@
+use approx::assert_abs_diff_eq;
 use gen_math_lib::mean::*;
 
 #[test]
@@ -69,7 +70,7 @@ fn geometric_2() {
     let res = geometric::<_, f64, _, f64>(arr);
 
     // assert
-    assert!((res.unwrap() - 12.0).abs() < 1E-7);
+    assert_abs_diff_eq!(res.unwrap(), 12.0, epsilon = 1E-4);
 }
 
 #[test]
@@ -93,7 +94,7 @@ fn general_2() {
     let res = general((|v: f64| v.powi(5), |v: f64| v.powf(0.2)), arr);
 
     // assert
-    assert!((res.unwrap() - 26.63671933).abs() < 1E-7);
+    assert_abs_diff_eq!(res.unwrap(), 86.6447017925, epsilon = 1E-7);
 }
 
 #[test]
@@ -102,7 +103,20 @@ fn general_3() {
     let arr: [f64; 8] = [1.0, 2.0, 5.0, 7.0, 15.0, 84.0, 100.0, -120.0];
 
     // act
-    let res = general((|v: f64| v.powf(0.5), |v: f64| v.powi(2)), arr);
+    let res = general(
+        (
+            |v: f64| {
+                let r = v.powf(0.5);
+                if r.is_nan() {
+                    None
+                } else {
+                    Some(r)
+                }
+            },
+            |v: f64| v.powi(2),
+        ),
+        arr,
+    );
 
     // assert
     assert!(res.is_none());

@@ -1,26 +1,52 @@
-use std::{marker::PhantomData, ops::Div};
+use std::marker::PhantomData;
 
-use num_traits::{One, Signed};
+use num_traits::Signed;
 
-pub trait Reciprocal {
-    type Output;
-    fn rcp(&self) -> Option<Self::Output>;
-    fn invs(self) -> Option<Self::Output>;
+pub trait Reciprocal<O> {
+    fn rcp(&self) -> Option<O>;
+    fn invs(self) -> Option<O>;
 }
 
-impl<T> Reciprocal for T
-where
-    T: Div<Self> + One + Clone,
-{
-    type Output = <T as Div>::Output;
-    fn rcp(&self) -> Option<Self::Output> {
-        self.clone().invs()
-    }
+macro_rules! impl_for_int {
+    ($tp:ty) => {
+        impl Reciprocal<f64> for $tp {
+            fn rcp(&self) -> Option<f64> {
+                let r = 1.0f64 / (*self as f64);
+                if r.is_nan() {
+                    None
+                } else {
+                    Some(r)
+                }
+            }
 
-    fn invs(self) -> Option<Self::Output> {
-        Some(T::one().div(self))
-    }
+            fn invs(self) -> Option<f64> {
+                let r = 1.0f64 / (self as f64);
+                if r.is_nan() {
+                    None
+                } else {
+                    Some(r)
+                }
+            }
+        }
+    };
 }
+
+impl_for_int! {usize}
+impl_for_int! {u8}
+impl_for_int! {u16}
+impl_for_int! {u32}
+impl_for_int! {u64}
+impl_for_int! {u128}
+
+impl_for_int! {isize}
+impl_for_int! {i8}
+impl_for_int! {i16}
+impl_for_int! {i32}
+impl_for_int! {i64}
+impl_for_int! {i128}
+
+impl_for_int! {f32}
+impl_for_int! {f64}
 
 pub trait Reversible<X, Y> {
     fn fwd_checked(&self, x: X) -> Option<Y>;
