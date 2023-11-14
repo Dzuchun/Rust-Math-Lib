@@ -7,10 +7,10 @@ fn arith_1() {
     let arr: [f64; 5] = [1.0, 2.0, 3.0, 4.0, 5.0];
 
     // act
-    let res = arith(arr);
+    let res = arith::<_, _, f64>(arr);
 
     // assert
-    assert_eq!(res.unwrap(), 3.0);
+    assert_eq!(res, 3.0);
 }
 
 #[test]
@@ -19,10 +19,10 @@ fn arith_2() {
     let arr: [f64; 0] = [];
 
     // act
-    let res = arith(arr);
+    let res = arith::<_, _, f64>(arr);
 
     // assert
-    assert!(res.is_none());
+    assert!(res.is_nan());
 }
 
 #[test]
@@ -31,10 +31,10 @@ fn harmonic_1() {
     let arr: [f64; 2] = [1.0, 4.0];
 
     // act
-    let res = harmonic(arr);
+    let res = harmonic::<_, _, _, f64>(arr);
 
     // assert
-    assert_eq!(res.unwrap(), 1.6)
+    assert_eq!(res, 1.6)
 }
 
 #[test]
@@ -43,10 +43,10 @@ fn harmonic_2() {
     let arr: [f64; 2] = [1.0, 7.0];
 
     // act
-    let res = harmonic(arr);
+    let res = harmonic::<_, _, _, f64>(arr);
 
     // assert
-    assert_eq!(res.unwrap(), 1.75)
+    assert_eq!(res, 1.75)
 }
 
 #[test]
@@ -58,7 +58,7 @@ fn geometric_1() {
     let res = geometric::<_, f64, _, f64>(arr);
 
     // assert
-    assert_eq!(res.unwrap(), 4.0)
+    assert_eq!(res, 4.0)
 }
 
 #[test]
@@ -70,7 +70,7 @@ fn geometric_2() {
     let res = geometric::<_, f64, _, f64>(arr);
 
     // assert
-    assert_abs_diff_eq!(res.unwrap(), 12.0, epsilon = 1E-4);
+    assert_abs_diff_eq!(res, 12.0, epsilon = 1E-4);
 }
 
 #[test]
@@ -79,10 +79,10 @@ fn general_1() {
     let arr: [f64; 8] = [1.0, 2.0, 5.0, -7.0, 15.0, 84.0, 100.0, 120.0];
 
     // act
-    let res = general((|v: f64| v.powi(2), f64::sqrt), arr);
+    let res = general::<_, _, _, _, f64>((|v: f64| v.powi(2), f64::sqrt), arr);
 
     // assert
-    assert!((res.unwrap() - 63.00793601).abs() < 1E-7);
+    assert!((res - 63.00793601).abs() < 1E-7);
 }
 
 #[test]
@@ -91,10 +91,10 @@ fn general_2() {
     let arr: [f64; 8] = [1.0, 2.0, 5.0, 7.0, 15.0, 84.0, 100.0, 120.0];
 
     // act
-    let res = general((|v: f64| v.powi(5), |v: f64| v.powf(0.2)), arr);
+    let res = general::<_, _, _, _, f64>((|v: f64| v.powi(5), |v: f64| v.powf(0.2)), arr);
 
     // assert
-    assert_abs_diff_eq!(res.unwrap(), 86.6447017925, epsilon = 1E-7);
+    assert_abs_diff_eq!(res, 86.6447017925, epsilon = 1E-7);
 }
 
 #[test]
@@ -103,23 +103,10 @@ fn general_3() {
     let arr: [f64; 8] = [1.0, 2.0, 5.0, 7.0, 15.0, 84.0, 100.0, -120.0];
 
     // act
-    let res = general(
-        (
-            |v: f64| {
-                let r = v.powf(0.5);
-                if r.is_nan() {
-                    None
-                } else {
-                    Some(r)
-                }
-            },
-            |v: f64| v.powi(2),
-        ),
-        arr,
-    );
+    let res = general::<_, _, _, _, f64>((|v: f64| v.powf(0.5), |v: f64| v.powi(2)), arr);
 
     // assert
-    assert!(res.is_none());
+    assert!(res.is_nan());
 }
 
 #[test]
@@ -128,8 +115,8 @@ fn general_4() {
     let arr: [f64; 0] = [];
 
     // act
-    let res = general((|v: f64| v.powf(77.0), |v: f64| v.powf(1.0 / 77.0)), arr);
+    let res = general::<_, _, _, _, f64>((|v: f64| v.powf(77.0), |v: f64| v.powf(1.0 / 77.0)), arr);
 
     // assert
-    assert!(res.is_none());
+    assert!(res.is_nan());
 }

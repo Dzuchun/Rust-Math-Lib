@@ -3,29 +3,19 @@ use std::marker::PhantomData;
 use num_traits::Signed;
 
 pub trait Reciprocal<O> {
-    fn rcp(&self) -> Option<O>;
-    fn invs(self) -> Option<O>;
+    fn rcp(&self) -> O;
+    fn invs(self) -> O;
 }
 
 macro_rules! impl_for_int {
     ($tp:ty) => {
         impl Reciprocal<f64> for $tp {
-            fn rcp(&self) -> Option<f64> {
-                let r = 1.0f64 / (*self as f64);
-                if r.is_nan() {
-                    None
-                } else {
-                    Some(r)
-                }
+            fn rcp(&self) -> f64 {
+                self.invs()
             }
 
-            fn invs(self) -> Option<f64> {
-                let r = 1.0f64 / (self as f64);
-                if r.is_nan() {
-                    None
-                } else {
-                    Some(r)
-                }
+            fn invs(self) -> f64 {
+                1.0f64 / (self as f64)
             }
         }
     };
@@ -49,8 +39,6 @@ impl_for_int! {f32}
 impl_for_int! {f64}
 
 pub trait Reversible<X, Y> {
-    fn fwd_checked(&self, x: X) -> Option<Y>;
-    fn bwd_checked(&self, y: Y) -> Option<X>;
     fn fwd(&self, x: X) -> Y;
     fn bwd(&self, y: Y) -> X;
 }
@@ -62,8 +50,8 @@ pub struct FnReversed<X, Y, Fwd, Bwd> {
 }
 
 pub fn fn_reversed<X, Y>(
-    forward: impl Fn(X) -> Option<Y>,
-    backward: impl Fn(Y) -> Option<X>,
+    forward: impl Fn(X) -> Y,
+    backward: impl Fn(Y) -> X,
 ) -> impl Reversible<X, Y> {
     FnReversed {
         fwd_fn: forward,
@@ -74,47 +62,29 @@ pub fn fn_reversed<X, Y>(
 
 impl<X, Y, Fwd, Bwd> Reversible<X, Y> for FnReversed<X, Y, Fwd, Bwd>
 where
-    Fwd: Fn(X) -> Option<Y>,
-    Bwd: Fn(Y) -> Option<X>,
+    Fwd: Fn(X) -> Y,
+    Bwd: Fn(Y) -> X,
 {
-    fn fwd_checked(&self, x: X) -> Option<Y> {
+    fn fwd(&self, x: X) -> Y {
         (self.fwd_fn)(x)
     }
 
-    fn bwd_checked(&self, y: Y) -> Option<X> {
-        (self.bwd_fn)(y)
-    }
-
-    fn fwd(&self, x: X) -> Y {
-        (self.fwd_fn)(x).unwrap()
-    }
-
     fn bwd(&self, y: Y) -> X {
-        (self.bwd_fn)(y).unwrap()
+        (self.bwd_fn)(y)
     }
 }
 
-impl<X, Y, Fwd, Bwd, OX, OY> Reversible<X, Y> for (Fwd, Bwd)
+impl<X, Y, Fwd, Bwd> Reversible<X, Y> for (Fwd, Bwd)
 where
-    Fwd: Fn(X) -> OY,
-    Bwd: Fn(Y) -> OX,
-    OX: Into<Option<X>>,
-    OY: Into<Option<Y>>,
+    Fwd: Fn(X) -> Y,
+    Bwd: Fn(Y) -> X,
 {
-    fn fwd_checked(&self, x: X) -> Option<Y> {
-        self.0(x).into()
-    }
-
-    fn bwd_checked(&self, y: Y) -> Option<X> {
-        self.1(y).into()
-    }
-
     fn fwd(&self, x: X) -> Y {
-        self.0(x).into().unwrap()
+        self.0(x)
     }
 
     fn bwd(&self, y: Y) -> X {
-        self.1(y).into().unwrap()
+        self.1(y)
     }
 }
 
