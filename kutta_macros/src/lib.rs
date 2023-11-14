@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use proc_macro2::{Ident, Span};
 use quote::{quote, ToTokens};
-use syn::{parse::Parse, parse_macro_input, Expr, LitFloat, LitInt, Token};
+use syn::{parenthesized, parse::Parse, parse_macro_input, Expr, LitFloat, LitInt, Token};
 
 fn coefficient(name: char, index: usize) -> Ident {
     Ident::new(&format!("{}_{}", name, index), Span::call_site())
@@ -36,7 +36,7 @@ struct KuttaArgs {
 
 fn parse_num(input: syn::parse::ParseStream) -> syn::Result<f64> {
     Ok(if input.peek(LitInt) {
-        f64::from(input.parse::<LitInt>()?.base10_parse::<i8>()?)
+        f64::from(input.parse::<LitInt>()?.base10_parse::<i32>()?)
     } else {
         input.parse::<LitFloat>()?.base10_parse::<f64>()?
     })
@@ -45,7 +45,9 @@ fn parse_num(input: syn::parse::ParseStream) -> syn::Result<f64> {
 fn parse_float(input: syn::parse::ParseStream) -> syn::Result<Coefficient> {
     if input.peek(Token![!]) {
         input.parse::<Token![!]>()?;
-        Ok(Coefficient::Expression(input.parse()?))
+        let content;
+        parenthesized!(content in input);
+        Ok(Coefficient::Expression(content.parse()?))
     } else {
         let numerator = parse_num(input)?;
         let denominator = if input.peek(Token![/]) {
