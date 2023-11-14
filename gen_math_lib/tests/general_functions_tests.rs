@@ -1,4 +1,4 @@
-use gen_math_lib::{general_functions::*, memoized};
+use gen_math_lib::{general_functions::*, memoized, progression::arithmetic_bounded};
 use rand::Rng;
 
 #[test]
@@ -54,4 +54,39 @@ fn li_test() {
 
     // assert
     assert!(true)
+}
+
+#[test]
+#[ignore = "used in manual mode only"]
+fn hypergeometric_test() {
+    // arrange
+    let exp = hypergeometric(-std::f64::consts::E, 0.1, 0.1); // this should be (1-z)^e
+    let hyp = hypergeometric(1.0, 1.0, 2.0);
+    let ln = |x: f64| x * hyp(-x); // this should be ln(1+z)
+
+    // act
+    println!("exp:");
+    println!("|x|should|real|");
+    arithmetic_bounded(-0.5f64, 0.5, 0.01)
+        .map(|x| (x, (1.0 - x).powf(std::f64::consts::E), exp(x)))
+        .for_each(|(x, should, real)| println!("{x} {should} {real}"));
+
+    println!("ln:");
+    println!("|x|should|real|");
+    arithmetic_bounded(-0.5f64, 0.5, 0.01)
+        .map(|x| (x, (1.0 + x).ln(), ln(x)))
+        .for_each(|(x, should, real)| println!("{x} {should} {real}"));
+}
+
+#[test]
+#[ignore = "used in manual mode only"]
+fn asin_as_hg() {
+    // arrange
+    let hg = hypergeometric(0.5, 0.5, 1.5);
+    let asin = |x: f64| x * hg(x * x);
+
+    // act
+    arithmetic_bounded(-1.0, 1.0, 0.01)
+        .map(|x| (x, asin(x)))
+        .for_each(|(x, y)| println!("{x} {y}"));
 }

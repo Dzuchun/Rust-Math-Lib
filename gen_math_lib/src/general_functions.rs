@@ -46,3 +46,19 @@ pub fn li() -> impl Fn(f64) -> Option<f64> {
         }
     }
 }
+
+macro_rules! generalized_hypergeometric {
+    ($($p:expr),+;$($q:expr),+; terms = $terms:expr, type = $type:ty) => {
+        ::function_macros::factored_relative_multitailor!($type, $terms, <$type as num::traits::One>::one(); {
+            let nf = n as f64 - 1.0;
+            <$type as num::traits::One>::one() $(*($p + nf))+ $(/($q + nf))+ /(nf + 1.0)
+        })
+    };
+    ($($p:expr),+;$($q:expr),+) => {
+        generalized_hypergeometric!($($p),+;$($q),+; terms = 20, type = f64)
+    }
+}
+
+pub fn hypergeometric(a: f64, b: f64, c: f64) -> impl Fn(f64) -> f64 {
+    generalized_hypergeometric!(a, b; c)
+}
