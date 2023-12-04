@@ -1,38 +1,25 @@
-# IMMEDIATE
-
-- Replace regular tests with documentation tests!!!!
-
 # General Math Lib
+This is my own math library, written in Rust.
 
-## Overview
+Here I implement various math operations I might want to use in my Rust projects. Any feedback is greatly appreciated.
 
-This is my Rust learning project.<br>
-Here I try to implement math structures and operations as abstractly as possible, while preserving their useabillity.<br>
-I'm very new to Rust (like, 10 days old), so I'd appreciate any feedback on my code quality.<br>
-This packge isnot meant to be published on [crates.io](crates.io), since <b>I'm very bad at Rust now. Please, be very sceptical about using this code anywhere.</b>
+## Indev stuff
 
-## Released modules
-
-No releases yet. Hope to pack&polish at least one module soon.
-
-## Indev modules
-
-- Mean. Contains couple of functions to allow several "mean values" (arithmetic, geometric, harmonic and general arith-like) calculation.
-- Numbers. Currently contains only [Pochhammer Symbol](https://mathworld.wolfram.com/PochhammerSymbol.html) and [Binomial Coefficient](https://mathworld.wolfram.com/BinomialCoefficient.html) for u128-bounded arguments and values. Obviously, I plan on removing mentioned restrictions and implement these objects for any complex arguments in the future. I plan on adding couple more well-known numbers such as [Bernoulli Number](https://mathworld.wolfram.com/BernoulliNumber.html) and others I might need while implementing various special functions.
-- Progression. Has two structs: ArithIterator and GeometricIterator corresponding to linear and exponential sequence.
-- Integration. Contains simple function - Euler (naive) integration. More algorytms planned on, like polynomial and Runge-Kutta integration (possibly macro-optimized).
-- Function Macros is a separate crate (since procedural macros enforce that). It contains macro definitions that allow recursive or absolute series-defined function definition. Have a plan to create recursive Fibonacci-like definition macro too.
-- Macro Functions. These contain definitions of a couple series-defined functions such as sin(x) and cos(x). Definitions are created by macros mentioned above. Plan on implementing much more functions over there.
-- Matrix. Contains definition of a matrix trait, that allows for row/column extraction, and determinant evaluation (if applicable). Would especially appreciate any guidance with this module, as sometimes I'm completely lost in generic types. I'd like to implement matrix in such a way that would allow for [Cross Product](https://mathworld.wolfram.com/CrossProduct.html) definition with it. Also I dream of [Curl](https://mathworld.wolfram.com/Curl.html) definition with it. Basic matric operation were not implemented yet.
-- Memoized. Defines fingle function, that would convern supplied function into memoized metrics-aware-estimator thing. This means, that (obviously) call to the same argument will just return already computed value, but also call to argument near several already computed onces (right now it's 7) would result in 7th-order polinomial estination to be computed, saved and returned. The plan is to make estimation order and number of arguments configurable.
-- Traits is a sort of lib module. It contains traits I might use all over the place.
-- General Functions is sort of endgame module. The idea is to define really hard-to-compute-integral-and-series-containing-functions there. But for now it's just $Ei(x)$, $E_1(x)$ and $li(x)$.
+- **Mean**: Contains couple of functions to allow several "mean value" calculations (arithmetic, geometric, harmonic and general arith-like).
+- **Numbers**: Currently contains only [Pochhammer Symbol] and [Binomial Coefficient] for u128-bounded arguments and values. Obviously, I plan on removing mentioned restrictions and implement these objects for any complex arguments in the future. I plan on adding couple more well-known numbers such as [Bernoulli Number] and others I might need while implementing various special functions.
+- **Progression**: Has two `struct`s: `ArithIterator` and `GeometricIterator` corresponding to linear and exponential sequence.
+- **Integration**: Contains simple euler-integrating function (attempts to half integration step until desired error is achieved). There is also a function for general step-integration, as well as several Runge-Kutta step-integrating functions. These are defined using macro, you can use to define any Runge-Kutta step function you wish.
+- **Function Macros** contains procedural macro to generate function definitions via Tailor series. Usage examples can be found in tests as well as **Macro Functions** module.
+- **Memoized** Defines function wrappers, that would wrap supplied function into memoized metrics-aware-estimator thing. Meaning, that each computed value would be stored and reused (if asked for same inputs again), and if functions if called for argument close to lots of values computed in past, polynomial approximation would be used to get the result. Obvious use case for that would be functions that take really long time to compute (idk, something like Gamma-function series).
+- **Traits** defines traits I use in my code. I'll try to keep this list as small as I can.
 
 ## Planned modules
 
-- Table Generator. Idea is to tabulate function of interest for visualization in some sort of program. Might actually inlude that program too.
-- Vectors. Not way i'd like without these. I plan on making them kinda <b>very abstract</b> so that they could describe things like differential operators and functional spaces too.
-- Tensors. No, not graphics ones, just regular multi-dimentional matrices. High-order physics theory is <b>PACKED</b> with these.
-- Differential operators. There are a lot of them, and even more numeric formlulae for each of them. Would like to implement at least a couple.
-- Equation Solver. There are a couple of numeric equation-solving methods for linear and non-linear problems.
-- Diff. Equation Solver. No experiment is done without a differential equation to solve.
+- **Table Generator**: Idea is to tabulate function of interest for visualization in some sort of program. Might actually include that program too.
+- **Differential operators**: There are a lot of them, and even more numeric formulae for each of them. Would like to implement at least a couple.
+- **Equation Solver**: There are a couple of numeric equation-solving methods for linear and non-linear problems.
+- **Diff. Equation Solver**: No experiment is done without a differential equation to solve.
+
+[Pochhammer Symbol]: https://mathworld.wolfram.com/PochhammerSymbol.html
+[Binomial Coefficient]: https://mathworld.wolfram.com/BinomialCoefficient.html
+[Bernoulli Number]: https://mathworld.wolfram.com/BernoulliNumber.html
