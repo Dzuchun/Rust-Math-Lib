@@ -11,6 +11,7 @@ Here I implement various math operations I might want to use in my Rust projects
 - **Integration**: Contains simple euler-integrating function (attempts to half integration step until desired error is achieved). There is also a function for general step-integration, as well as several Runge-Kutta step-integrating functions. These are defined using macro, you can use to define any Runge-Kutta step function you wish.
 - **Function Macros** contains procedural macro to generate function definitions via Tailor series. Usage examples can be found in tests as well as **Macro Functions** module.
 - **Memoized** Defines function wrappers, that would wrap supplied function into memoized metrics-aware-estimator thing. Meaning, that each computed value would be stored and reused (if asked for same inputs again), and if functions if called for argument close to lots of values computed in past, polynomial approximation would be used to get the result. Obvious use case for that would be functions that take really long time to compute (idk, something like Gamma-function series).
+- **Residue** module contains function that can be used to compute residual of a complex-valued function. Under the hood, this is done using [Residue Theorem] (contour being a circle).
 - **Traits** defines traits I use in my code. I'll try to keep this list as small as I can.
 
 ## Planned modules
@@ -23,3 +24,4 @@ Here I implement various math operations I might want to use in my Rust projects
 [Pochhammer Symbol]: https://mathworld.wolfram.com/PochhammerSymbol.html
 [Binomial Coefficient]: https://mathworld.wolfram.com/BinomialCoefficient.html
 [Bernoulli Number]: https://mathworld.wolfram.com/BernoulliNumber.html
+v: https://en.wikipedia.org/wiki/Residue_theorem
